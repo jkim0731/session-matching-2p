@@ -1,17 +1,5 @@
-% clear all; close all; clc;
-%             
-% sessionNames = {'E:/027/027_015_000',...
-%                 'E:/027/027_018_000',...
-%                 'E:/027/027_021_000',...
-%                 'E:/027/027_024_000'};
-%             
-% for s = 1:length(sessionNames)
-%    disp(['session: ' num2str(s)]);
-%    convertToH5(sessionNames{s}); 
-% end
+clear all; close all; clc;
 
-%%
-clear; close all; 
 baseDir = 'P:\';
 mouse = 38;
 sessions = [16:31,5554,5555,9998,9999];
