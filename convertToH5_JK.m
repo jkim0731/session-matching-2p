@@ -31,7 +31,7 @@ function [] = convertToH5_JK(sessionName,targetDir,optotuneRingingTime)
        planeFile = fullfile(planeDir, [sessionID, '_plane_', num2str(i), '.h5']);
 
        % load
-       q = squeeze(jksbxreadframes(sessionName, framePlanes{i}, 1));
+       q = squeeze(jksbxreadframes_4h5c(sessionName, framePlanes{i}, 1));
        q = q(yStart:end, xStart : end-xDeadband, :);
 
        % save
