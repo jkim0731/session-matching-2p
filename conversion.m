@@ -36,7 +36,7 @@ parfor si = 1 : length(sessions)
         optotuneRingingTime = 8; % in ms. To crop top portion of each frame.
 
         targetDir = sprintf('%s%03d\\',targetBD,mouse);
-        convertToH5_JK(fn,targetDir)
+        convertToH5_JK(fn,targetDir,optotuneRingingTime)
     end
     elapsedTimes(si) = toc;
 end

@@ -1,4 +1,4 @@
-function [] = convertToH5_JK(sessionName,targetDir)
+function [] = convertToH5_JK(sessionName,targetDir,optotuneRingingTime)
 % from 'convertToH5', add 'targetDir' to save the image in a different disk
 % drive
 % 2020/11/29 JK
@@ -17,7 +17,7 @@ function [] = convertToH5_JK(sessionName,targetDir)
     
     % vars
     nPlanes = length(trials.frame_to_use);
-    yStart = round(optotune_ringing_time/ (1000/info.resfreq) *(2-info.scanmode));
+    yStart = round(optotuneRingingTime/ (1000/info.resfreq) *(2-info.scanmode));
     xStart = 100;
     xDeadband = 10;
 
