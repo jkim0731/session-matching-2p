@@ -29,9 +29,9 @@ parfor si = 1 : length(sessions)
         fn = sprintf('%s%03d\\%s',baseDir,mouse,sbxFn);
         if sessions(si) > 1000 % spontaneous or piezo sessions
             laserOnFrames = laser_on_frames(fn);
-            jksbxsplittrial(fn,laserOnFrames)
+            jksbxsplittrial_4h5c(fn,laserOnFrames)
         else
-            jksbxsplittrial(fn) % run this again, making .trial files
+            jksbxsplittrial_4h5c(fn) % run this again, making .trial files
         end
         optotuneRingingTime = 8; % in ms. To crop top portion of each frame.
 
