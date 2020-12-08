@@ -36,7 +36,7 @@ function [] = convertToH5(sessionName)
        % check frame dims
        q = sbxread(sessionName, 1, 1);
        q = squeeze(q);
-       q = q(:,100:end-100);
+       q = q(:,100:end-10);
        meanImg = q;
 
        h5create(planeFile, '/data', [size(q, 1), size(q, 2) Inf], 'DataType', 'uint16', 'ChunkSize',[size(q,1) size(q,2) 1])
@@ -50,7 +50,7 @@ function [] = convertToH5(sessionName)
        for f = framePlanes{1, i}
           q = sbxread(sessionName, f, 1);
           q = squeeze(q);
-          q = q(:,100:end-100);
+          q = q(:,100:end-10);
           textprogressbar((c/nFrames)*100);
 
           figure(1);
