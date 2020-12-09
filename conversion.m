@@ -2,13 +2,13 @@ clear all; close all; clc;
 
 baseDir = 'E:\';
 mouse = 25;
-sessions = [7];
+sessions = [3:5];
 
 elapsedTimes = zeros(length(sessions),1);
 
 targetBD = 'E:\025\';
 %%
-parfor si = 1 : length(sessions)
+for si = 1 : length(sessions)
     tic
     sbxList = ls(sprintf('%s%03d\\%03d_%03d_0*.sbx',baseDir,mouse,mouse,sessions(si)));
     for sbxi = 1 : size(sbxList,1)
@@ -23,7 +23,7 @@ parfor si = 1 : length(sessions)
         optotuneRingingTime = 8; % in ms. To crop top portion of each frame.
 
         targetDir = sprintf('%s%03d\\',targetBD,mouse);
-        convertToH5_JK(fn,targetDir,optotuneRingingTime)
+        convertToH5_JK(fn,targetDir,optotuneRingingTime,1000)
     end
     elapsedTimes(si) = toc;
 end
