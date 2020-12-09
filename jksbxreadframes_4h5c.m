@@ -28,7 +28,7 @@ function z = jksbxreadframes_4h5c(fname, frames, channels)
 % cols is the number of pixels in each line
 %
 % The function also creates a global 'info' variable with additional
-% informationi about the file
+% information about the file
 
 global info_loaded info
 
@@ -94,45 +94,66 @@ end
 
 if(isfield(info,'fid') && info.fid ~= -1)
     if channels == 1 || channels == 2 || channels == [1,2]
-    %     nsamples = info.postTriggerSamples * info.recordsPerBuffer;
-
         N = 1;
-%         try
-%             % initialize
-%             z = zeros([length(channels), info.sz(1), info.sz(2), length(frames)],'uint16');
-%             % loop through frames
-%             for fi = 1 : length(frames)
-%                 fseek(info.fid,frames(fi)*info.nsamples,'bof');
-%                 x = fread(info.fid,info.nsamples/2 * N,'uint16=>uint16');
-%                 x = reshape(x,[info.nchan info.sz(2) info.recordsPerBuffer  N]);
-%                 x = intmax('uint16')-permute(x,[1 3 2 4]);
-%                 x = x(channels, :,:,:);
-%                 z(:,:,:,fi) = x;
-%             end
-%         catch
-            try         
-%                 info.fid = fopen([fname '.sbx']); % for some reason can't be specified, fseek does not work, and it could be recovered by opening
-                % initialize
-                z = zeros([length(channels), info.sz(1), info.sz(2), length(frames)],'uint16');
+        % initialize
+        z = zeros([length(channels), info.sz(1), info.sz(2), length(frames)],'uint16');
+        try 
+            % loop through frames
+            for fi = 1 : length(frames)
+                fseek(info.fid,frames(fi)*info.nsamples,'bof');
+                x = fread(info.fid,info.nsamples/2 * N,'uint16=>uint16');
+                x = reshape(x,[info.nchan info.sz(2) info.recordsPerBuffer  N]);
+                x = intmax('uint16')-permute(x,[1 3 2 4]);
+                x = x(channels, :,:,:);
+                z(:,:,:,fi) = x;
+            end
+        catch % refresh file id
+            fclose(info.fid); % test remedy 2017/07/14 JK
+            try
                 % loop through frames
+                fid = fopen([fname '.sbx']);
                 for fi = 1 : length(frames)
-                    info.fid = fopen([fname '.sbx']);
-                    fseek(info.fid,frames(fi)*info.nsamples,'bof');
-                    x = fread(info.fid,info.nsamples/2 * N,'uint16=>uint16');
+                    fseek(fid,frames(fi)*info.nsamples,'bof');
+                    x = fread(fid,info.nsamples/2 * N,'uint16=>uint16');
                     x = reshape(x,[info.nchan info.sz(2) info.recordsPerBuffer  N]);
                     x = intmax('uint16')-permute(x,[1 3 2 4]);
                     x = x(channels, :,:,:);
                     z(:,:,:,fi) = x;
-                    fclose(info.fid); % test remedy 2017/07/14 JK
+                    
                 end
+                fclose(fid); % test remedy 2017/07/14 JK
             catch
-                error('Cannot read frame.  Index range likely outside of bounds.');
+                try
+                    % fopen and fclose inside each loop
+                    for fi = 1 : length(frames)
+                        fid = fopen([fname '.sbx']);
+                        fseek(fid,frames(fi)*info.nsamples,'bof');
+                        x = fread(fid,info.nsamples/2 * N,'uint16=>uint16');
+                        x = reshape(x,[info.nchan info.sz(2) info.recordsPerBuffer  N]);
+                        x = intmax('uint16')-permute(x,[1 3 2 4]);
+                        x = x(channels, :,:,:);
+                        z(:,:,:,fi) = x;
+                        fclose(fid); % test remedy 2017/07/14 JK
+                    end
+                catch
+                    try % just one more try, since opening .sbx file has an unknown error (the error frame changes from trial to trial)         
+        %                 info.fid = fopen([fname '.sbx']); % for some reason can't be specified, fseek does not work, and it could be recovered by opening
+                        for fi = 1 : length(frames)
+                            fid = fopen([fname '.sbx']);
+                            fseek(fid,frames(fi)*info.nsamples,'bof');
+                            x = fread(fid,info.nsamples/2 * N,'uint16=>uint16');
+                            x = reshape(x,[info.nchan info.sz(2) info.recordsPerBuffer  N]);
+                            x = intmax('uint16')-permute(x,[1 3 2 4]);
+                            x = x(channels, :,:,:);
+                            z(:,:,:,fi) = x;
+                            fclose(info.fid); % test remedy 2017/07/14 JK
+                        end
+                    catch
+                        error('Cannot read frame.  Index range likely outside of bounds.');
+                    end
+                end
             end
-%         end
-
-    %     x = intmax('uint16')-permute(x,[1 3 2 4]);
-
-        
+        end
     else
         error('Input ''channels'' should be either [1], [2], or [1,2]')
     end

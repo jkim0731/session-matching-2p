@@ -25,18 +25,19 @@ function [] = convertToH5_JK(sessionName,targetDir,optotuneRingingTime)
 
     % extract frames for each plane and save
     for i = 1:nPlanes
-%     for i = 6:nPlanes
        planeDir = fullfile(targetDir, ['plane_' num2str(i)]);
        mkdir(planeDir);
        planeFile = fullfile(planeDir, [sessionID, '_plane_', num2str(i), '.h5']);
 
-       % load
-       q = squeeze(jksbxreadframes_4h5c(sessionName, framePlanes{i}, 1));
-       q = q(yStart:end, xStart : end-xDeadband, :);
+       if ~isfile(planeFile)
+           % load
+           q = squeeze(jksbxreadframes_4h5c(sessionName, framePlanes{i}, 1));
+           q = q(yStart:end, xStart : end-xDeadband, :);
 
-       % save
-       h5create(planeFile, '/data', [size(q, 1), size(q, 2) length(framePlanes{i})], 'DataType', 'uint16', 'ChunkSize',[size(q,1) size(q,2) 1])
-       h5write(planeFile,'/data',q)       
+           % save
+           h5create(planeFile, '/data', [size(q, 1), size(q, 2) length(framePlanes{i})], 'DataType', 'uint16', 'ChunkSize',[size(q,1) size(q,2) 1])
+           h5write(planeFile,'/data',q)
+       end
     end
 end
 
