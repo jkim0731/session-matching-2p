@@ -16,15 +16,7 @@ function [] = convertToH5(sessionName)
     firstFrame = min(cellfun(@min, trials.frame_to_use));
 
     % find frames for each plane
-    framePlanes = cell(1, nPlanes);
-    for i = 1:lastFrame
-        for j = 1:length(trials.frame_to_use)
-           id = find(trials.frame_to_use{j} == i);
-           if ~isempty(id)
-              framePlanes{j} = [framePlanes{j} i]; 
-           end
-        end
-    end
+    framePlanes = trials.frame_to_use;
 
     % extract frames for each plane and save
     figure(1);

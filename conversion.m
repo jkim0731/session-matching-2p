@@ -1,15 +1,14 @@
 clear all; close all; clc;
 
-baseDir = 'P:\';
-mouse = 38;
-sessions = [16:31,5554,5555,9998,9999];
+baseDir = 'E:\';
+mouse = 25;
+sessions = [7];
 
 elapsedTimes = zeros(length(sessions),1);
 
-targetBD = 'D:\TPM\JK\h5\';
-% %%
+targetBD = 'E:\025\';
+%%
 parfor si = 1 : length(sessions)
-% for si = 1
     tic
     sbxList = ls(sprintf('%s%03d\\%03d_%03d_0*.sbx',baseDir,mouse,mouse,sessions(si)));
     for sbxi = 1 : size(sbxList,1)
