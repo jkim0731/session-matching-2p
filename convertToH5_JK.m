@@ -22,7 +22,7 @@ function [] = convertToH5_JK(sessionName,targetDir,optotuneRingingTime,varargin)
     sessionNum = str2double(sessionInfo{2}); % in case of spontaneous and piezo, there are only 4 planes. Need to identify if it was upper or lower volume (by the evenness of the session #)
     
     % for a given session load the trials
-    trials = importdata([sessionName '.trials']);
+    trials = load([sessionName '.trials'],'-mat'); % sometimes importdata just doesn't work
     load([sessionName, '.mat'], 'info')
     
     % vars
