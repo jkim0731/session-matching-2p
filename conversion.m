@@ -23,7 +23,7 @@ for si = 1 : length(sessions)
         elseif floor(sessions(si)/1000) == 9 % piezo & passive pole (x1x)
             tempTrial = strsplit(sbxFn,'_');
             trialNum = num2str(tempTrial{end});
-            flag = 1 - trialNum(2); % 1 if piezo, 0 if passive pole
+            flag = 1 - str2double(trialNum(2)); % 1 if piezo, 0 if passive pole
             if flag % only piezo deflection, not passive pole presentation.
                 laserOnFrames = laser_on_frames(fn);
                 jksbxsplittrial_4h5c(fn,laserOnFrames, 'piezo')
