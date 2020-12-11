@@ -1,5 +1,4 @@
-clear all; close all; clc;
-
+clear; close all; 
 baseDir = 'E:\';
 mouse = 25;
 sessions = [3:5];
@@ -9,23 +8,35 @@ elapsedTimes = zeros(length(sessions),1);
 targetBD = 'E:\025\';
 %%
 for si = 1 : length(sessions)
-    tic
-    sbxList = ls(sprintf('%s%03d\\%03d_%03d_0*.sbx',baseDir,mouse,mouse,sessions(si)));
+    if sessions(si) < 1000
+        sbxList = ls(sprintf('%s%03d\\%03d_%03d_0*.sbx',baseDir,mouse,mouse,sessions(si)));
+    else
+        sbxList = ls(sprintf('%s%03d\\%03d_%d_*.sbx',baseDir,mouse,mouse,sessions(si)));
+    end
     for sbxi = 1 : size(sbxList,1)
-        sbxFn = sbxList(sbxi,1:end-4); % removing '.sbx'
+        tempFn = strsplit(sbxList(sbxi,:),'.');
+        sbxFn = tempFn{1}; % removing '.sbx'
         fn = sprintf('%s%03d\\%s',baseDir,mouse,sbxFn);
-        if sessions(si) > 1000 % spontaneous or piezo sessions
+        if floor(sessions(si)/1000) == 5 % spontaneous
             laserOnFrames = laser_on_frames(fn);
             jksbxsplittrial_4h5c(fn,laserOnFrames)
-        else
+        elseif floor(sessions(si)/1000) == 9 % piezo & passive pole (x1x)
+            tempTrial = strsplit(sbxFn,'_');
+            trialNum = num2str(tempTrial{end});
+            flag = 1 - trialNum(2); % 1 if piezo, 0 if passive pole
+            if flag % only piezo deflection, not passive pole presentation.
+                laserOnFrames = laser_on_frames(fn);
+                jksbxsplittrial_4h5c(fn,laserOnFrames, 'piezo')
+            end
+        elseif sessions(si) < 1000
             jksbxsplittrial_4h5c(fn) % run this again, making .trial files
+        else
+            error('Wrong session #')
         end
-        optotuneRingingTime = 8; % in ms. To crop top portion of each frame.
 
         targetDir = sprintf('%s%03d\\',targetBD,mouse);
         convertToH5_JK(fn,targetDir,optotuneRingingTime,1000)
     end
-    elapsedTimes(si) = toc;
 end
 
 %% Check frame index
