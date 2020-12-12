@@ -35,7 +35,9 @@ for si = 1 : length(sessions)
         end
 
         targetDir = sprintf('%s%03d\\',targetBD,mouse);
-        convertToH5_JK(fn,targetDir,optotuneRingingTime,1000)
+        if isfile([fn,'.trials'])
+            convertToH5_JK(fn,targetDir,optotuneRingingTime,1000)
+        end
     end
 end
 
