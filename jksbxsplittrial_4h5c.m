@@ -39,6 +39,8 @@ function jksbxsplittrial_4h5c(fn, varargin)
 % Fix for piezo deflections mouse < 50, where TTL signals (info.event_id)
 % mean deflection onset (event_id == 3) and offset (event_id == 2)
 
+% 2021/01/02
+% 0-based frames from this day on. Before, it was 1-based frames
     %% check if already splitted or not
 %     if exist([fn,'.trials'],'file')
 %         fprintf('%s has already been split\n',fn)
@@ -50,7 +52,7 @@ function jksbxsplittrial_4h5c(fn, varargin)
     piezo = 0;
     piezoLaser = 0;
     if nargin > 1
-        if isnumeric(varargin{1}) && min(varargin{1}) > 0 
+        if isnumeric(varargin{1})
             onFrames = varargin{1};
             laserOffIncluded = 1; % only for spontaneous and piezo. Not for regular training imaging sessions 
         elseif isempty(varargin{1})
@@ -353,7 +355,7 @@ function jksbxsplittrial_4h5c(fn, varargin)
             end
         elseif piezoLaser
             if ~laserOffIncluded
-                error('For ''piezo_laser'', there must be laser on frames.')
+                error('For ''piezo_laser'', there must be laser on frames (%s).', fn)
             end
             % depends on info.messages
             num_event = length(info.messages);

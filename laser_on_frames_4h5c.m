@@ -1,4 +1,4 @@
-function onFrames = laser_on_frames (fn, varargin)
+function onFrames = laser_on_frames_4h5c(fn, varargin)
 % Frames are following 0-based indexing % 2021/01/02 JK
 if nargin > 1
     if isinteger(varargin{1}) && varargin{1} > 1
