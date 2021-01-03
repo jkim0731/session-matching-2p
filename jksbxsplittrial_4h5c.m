@@ -34,6 +34,11 @@ function jksbxsplittrial_4h5c(fn, varargin)
 
 % 2020/12/10
 % Fix for piezo deflections, where there was no bitcode recorded
+
+% 2021/01/02
+% Fix for piezo deflections mouse < 50, where TTL signals (info.event_id)
+% mean deflection onset (event_id == 3) and offset (event_id == 2)
+
     %% check if already splitted or not
 %     if exist([fn,'.trials'],'file')
 %         fprintf('%s has already been split\n',fn)
@@ -43,6 +48,7 @@ function jksbxsplittrial_4h5c(fn, varargin)
     %% input arguments
     laserOffIncluded = 0;
     piezo = 0;
+    piezoLaser = 0;
     if nargin > 1
         if isnumeric(varargin{1}) && min(varargin{1}) > 0 
             onFrames = varargin{1};
@@ -60,9 +66,11 @@ function jksbxsplittrial_4h5c(fn, varargin)
         end
         if nargin > 2
             if strcmp(varargin{2},'piezo')
-                piezo = 1; % only for piezo. No bitcodes
+                piezo = 1; % only for piezo. No bitcodes (Mouse > 50)
+            elseif strcmp(varargin{2}, 'piezo_laser')
+                piezoLaser = 1; % only for piezo. No bitcodes (Mouse < 50)
             else
-                error('3rd input argument should be ''piezo''')
+                error('3rd input argument should be ''piezo'' or ''piezo_laser''. ')
             end
         end
     end
@@ -72,7 +80,7 @@ function jksbxsplittrial_4h5c(fn, varargin)
         a = squeeze(jksbxread(fn,0,1));
         global info    
         
-        if isfield(info,'event_id') && size(info.event_id,1) > 10 && ~piezo % at least for 10 event_id. Sometimes spontaneous imaging sessions can have 1-2 events.
+        if isfield(info,'event_id') && size(info.event_id,1) > 10 && ~piezo && ~piezoLaser % at least for 10 event_id. Sometimes spontaneous imaging sessions can have 1-2 events.
             % info.frame has limit at 2^16. Correct this
             % Don't save this for now. 2017/06/20 JK
             if info.max_idx > 2^16-1            
@@ -252,7 +260,7 @@ function jksbxsplittrial_4h5c(fn, varargin)
                     frame_to_use{plane_sorted(ind_plane)} = intersect(ind_plane-1:num_plane:maxInd,trial_frames);
                 end        
             end
-        elseif piezo % piezo deflection (or passive pole presentation) % 2020/12/10 JK
+        elseif piezo % piezo deflection (or passive pole presentation) % 2020/12/10 JK (for mouse > 50)
             % depends on info.messages
             num_event = length(info.messages);
             layer_trials = [];
@@ -342,7 +350,63 @@ function jksbxsplittrial_4h5c(fn, varargin)
                     trial_frames = intersect(trial_frames, onFrames);
                 end
                 frame_to_use{1} = trial_frames;
-            end 
+            end
+        elseif piezoLaser
+            if ~laserOffIncluded
+                error('For ''piezo_laser'', there must be laser on frames.')
+            end
+            % depends on info.messages
+            num_event = length(info.messages);
+            layer_trials = [];
+            trials = []; 
+            blockimaging = 0; num_layer = 1;
+            if isfield(info, 'blankstart') % blankstart is set manually. Sometimes during file transfer using windows, the files get breached and turns into white blank frames. 2018/03/03 JK
+                info.max_idx = info.blankstart-1;
+            end
+            
+            if length(find(info.event_id == 3)) ~= num_event
+                error('Frame start mismatch at file %s', fn)
+            elseif length(find(info.event_id == 2)) ~= num_event
+                error('Frame end mismatch at file %s', fn)
+            end
+            % in these cases, try manual ocrrection of info file
+            % Use manual_correction_sbxinfo_messages.m
+
+            start_event = find(info.event_id==3);
+            end_event = find(info.event_id==2);
+            %% trials for piezo deflection
+            trials = struct('trialnum',[],'frames',[], 'lines', []);
+            for i = 1:num_event
+                trials(i).trialnum = str2double(info.messages{i});
+                trials(i).frames = [info.frame(start_event(i)),info.frame(end_event(i))];
+                trials(i).lines = [info.line(start_event(i)),info.line(end_event(i))];
+            end
+                
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            % Assume objective is already sorted descending. (objective 1 higher, i.e., shallower, than objective 2)
+            % Overall goal is to have all planes (including layers) sorted in descending order
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            if info.volscan
+                [~,plane_sorted] = sort(info.otwave,'descend'); % sorting from the top. 
+                num_plane = length(info.otwave_um);
+                
+                maxInd = info.max_idx - mod(info.max_idx+1,num_plane);
+                
+                %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                % Very important variable
+                %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                frame_to_use = cell(1,num_plane); % this is going to be used for the rest of the analysis.
+                %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+                for ind_plane = 1 : num_plane
+                    frame_to_use{plane_sorted(ind_plane)} = intersect(ind_plane-1:num_plane:maxInd, onFrames);
+                end
+            else
+                num_plane = 1;
+                frame_to_use = cell(num_plane,1);
+                trial_frames = onFrames;
+                frame_to_use{1} = trial_frames;
+            end
         else % spontaneous
             layer_trials = [];
             trials = []; 
