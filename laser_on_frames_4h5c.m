@@ -11,7 +11,7 @@ else
     numThresh = 1000;
 end
 
-maxIdx = round(jkget_maxidx(fn));
+maxIdx = round(sbx_maxidx(fn));
 if maxIdx > numThresh
     numChunks = ceil(maxIdx/numThresh); % dividing into chunks just because of memory issue.
 end
