@@ -5,6 +5,10 @@ function [] = convertToH5_JK(sessionName,targetDir,optotuneRingingTime,varargin)
 % Allocate upper and lower volume separately for spontaneous and piezo
 % sessions 2020/12/10 JK
 
+% Update:
+%     - data format, from (y,x,t) to (x,y,t), to match with suite2p input format for h5 files.
+%     2021/02/04 JK
+
     if ~strcmp(targetDir(end), '\')
         targetDir = [targetDir,'\'];
     end
@@ -54,6 +58,7 @@ function [] = convertToH5_JK(sessionName,targetDir,optotuneRingingTime,varargin)
        
        testFrame = squeeze(jksbxreadframes_4h5c(sessionName, 1, 1));
        testFrame = testFrame(yStart:end, xStart : end-xDeadband, :);
+       testFrame = permute(testFrame, [2 1 3]); % to match with suite2p format for h5 files (x,y,t), 2021/02/04 JK
 
        if ~isfile(planeFile)
            fprintf('Processing session %s plane %d\n', sessionName, i)
@@ -68,7 +73,8 @@ function [] = convertToH5_JK(sessionName,targetDir,optotuneRingingTime,varargin)
 
                    q = squeeze(jksbxreadframes_4h5c(sessionName, framePlanes{i}(readWindow), 1));
                    q = q(yStart:end, xStart : end-xDeadband, :);
-
+                   q = permute(q, [2 1 3]); % to match with suite2p format for h5 files (x,y,t), 2021/02/04 JK
+                   
                    % save
 
                    h5write(planeFile,'/data',q,[1, 1, frameCounter],[size(q, 1), size(q, 2), length(readWindow)]);
@@ -77,6 +83,7 @@ function [] = convertToH5_JK(sessionName,targetDir,optotuneRingingTime,varargin)
            else
                wholeData = squeeze(jksbxreadframes_4h5c(sessionName, framePlanes{i}, 1));
                wholeData = wholeData(yStart:end, xStart:end-xDeadband,:);
+               wholeData = permute(wholeData, [2 1 3]); % to match with suite2p format for h5 files (x,y,t), 2021/02/04 JK
                h5write(planeFile,'/data',wholeData)
            end
        end

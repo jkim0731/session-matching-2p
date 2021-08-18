@@ -11,13 +11,14 @@ else
     numThresh = 1000;
 end
 
-maxIdx = round(sbx_maxidx(fn));
+maxIdx = round(jkget_maxidx(fn));
 if maxIdx > numThresh
     numChunks = ceil(maxIdx/numThresh); % dividing into chunks just because of memory issue.
 end
 msignal = zeros(maxIdx,1);
 %%
-global info
+infofn = [fn, '.mat'];
+load(infofn, 'info')
 for i = 1 : numChunks-1
     a = sbxread(fn,(i-1)*numThresh,numThresh);
     a = squeeze(a(1,:,:,:));

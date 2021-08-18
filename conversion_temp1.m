@@ -2,52 +2,59 @@ clear; close all;
 
 optotuneRingingTime = 8; % in ms. To crop top portion of each frame.
 
-baseDir = 'E:\';
-mice = [52,54];
-sessions = {[22:29], [21:26,5554,5555,9998,9999]};
-% sessions = {[22:29], [9998,9999]};
+baseDir = 'H:\';
+mice = [52, 56];
+sessions = {[5555, 5554], [5555]};
+% sessions = {[9998,9999],[]};
 targetBD = 'D:\TPM\JK\h5\';
 
-% for mi = 1 : length(mice)
-%     mouse = mice(mi);
-%     targetDir = sprintf('%s%03d\\',targetBD,mouse);
-%     for si = 1 : length(sessions{mi})
-%         if sessions{mi}(si) < 1000
-%             sbxList = ls(sprintf('%s%03d\\%03d_%03d_0*.sbx',baseDir,mouse,mouse,sessions{mi}(si)));
-%         else
+
+%%
+for mi = 1 : length(mice)
+    mouse = mice(mi);
+    targetDir = sprintf('%s%03d\\',targetBD,mouse);
+    for si = 1 : length(sessions{mi})
+        if sessions{mi}(si) < 1000
+            sbxList = ls(sprintf('%s%03d\\%03d_%03d_0*.sbx',baseDir,mouse,mouse,sessions{mi}(si)));
+        else
 %             sbxList = ls(sprintf('%s%03d\\%03d_%d_*.sbx',baseDir,mouse,mouse,sessions{mi}(si)));
-%         end
-%         for sbxi = 1 : size(sbxList,1)
-%             tempFn = strsplit(sbxList(sbxi,:),'.');
-%             sbxFn = tempFn{1}; % removing '.sbx'
-%             fn = sprintf('%s%03d\\%s',baseDir,mouse,sbxFn);
-%             if floor(sessions{mi}(si)/1000) == 5 % spontaneous
-%                 if mouse < 50 || any(strcmp(sbxFn, {'052_5555_100','052_5554_100','056_5555_100'}))
-%                     laserOnFrames = laser_on_frames(fn);
-%                     jksbxsplittrial_4h5c(fn,laserOnFrames)
-%                 else
-%                     jksbxsplittrial_4h5c(fn)
-%                 end
-%             elseif floor(sessions{mi}(si)/1000) == 9 % piezo & passive pole (x1x)
-%                 tempTrial = strsplit(sbxFn,'_');
-%                 trialNum = num2str(tempTrial{end});
-%                 flag = 1 - str2double(trialNum(2)); % 1 if piezo, 0 if passive pole
-%                 if flag % only piezo deflection, not passive pole presentation.
-%                     laserOnFrames = laser_on_frames(fn);
-%                     jksbxsplittrial_4h5c(fn,laserOnFrames, 'piezo')
-%                 end
-%             elseif sessions{mi}(si) < 1000
-%                 jksbxsplittrial_4h5c(fn) % run this again, making .trial files
-%             else
-%                 error('Wrong session #')
-%             end
-% 
-%             if isfile([fn,'.trials'])
-%                 convertToH5_JK(fn,targetDir,optotuneRingingTime)
-%             end
-%         end
-%     end
-% end
+            sbxList = ls(sprintf('%s%03d\\%03d_%d_100.sbx',baseDir,mouse,mouse,sessions{mi}(si)));
+        end
+        for sbxi = 1 : size(sbxList,1)
+            tempFn = strsplit(sbxList(sbxi,:),'.');
+            sbxFn = tempFn{1}; % removing '.sbx'
+            fn = sprintf('%s%03d\\%s',baseDir,mouse,sbxFn);
+            if floor(sessions{mi}(si)/1000) == 5 % spontaneous
+                if mouse < 50 || any(strcmp(sbxFn, {'052_5555_100','052_5554_100','056_5555_100'}))
+                    laserOnFrames = laser_on_frames_4h5c(fn);
+                    jksbxsplittrial_4h5c(fn,laserOnFrames)
+                else
+                    jksbxsplittrial_4h5c(fn)
+                end
+            elseif floor(sessions{mi}(si)/1000) == 9 % piezo & passive pole (x1x)
+                tempTrial = strsplit(sbxFn,'_');
+                trialNum = num2str(tempTrial{end});
+                flag = 1 - str2double(trialNum(2)); % 1 if piezo, 0 if passive pole
+                if flag % only piezo deflection, not passive pole presentation.
+                    laserOnFrames = laser_on_frames_4h5c(fn);
+                    if mouse > 50
+                        jksbxsplittrial_4h5c(fn,laserOnFrames, 'piezo')
+                    else
+                        jksbxsplittrial_4h5c(fn,laserOnFrames, 'piezo_laser')
+                    end
+                end
+            elseif sessions{mi}(si) < 1000
+                jksbxsplittrial_4h5c(fn) % run this again, making .trial files
+            else
+                error('Wrong session #')
+            end
+
+            if isfile([fn,'.trials'])
+                convertToH5_JK(fn,targetDir,optotuneRingingTime)
+            end
+        end
+    end
+end
 %% Check results
 %% (1) Test file size. Planes 1-4 from a session should have the same file size, and planes 5-8 should do too.
 % % Sometimes the file sizes are different, meaning there was an error
@@ -66,7 +73,8 @@ for mi = 1 : length(mice)
                 planes = 1:8;
             end
         else
-            sbxList = ls(sprintf('%s%03d\\%03d_%d_*.sbx',baseDir,mouse,mouse,session));
+%             sbxList = ls(sprintf('%s%03d\\%03d_%d_*.sbx',baseDir,mouse,mouse,session));
+            sbxList = ls(sprintf('%s%03d\\%03d_%d_100.sbx',baseDir,mouse,mouse,session));
             if mod(session,2)
                 planes = 1:4;
             else
@@ -139,7 +147,8 @@ for mi = 1 : length(mice)
                 ftuIndices = 1:8; % ftu: frame_to_use
             end
         else
-            sbxList = ls(sprintf('%s%03d\\%03d_%d_*.sbx',baseDir,mouse,mouse,session));
+%             sbxList = ls(sprintf('%s%03d\\%03d_%d_*.sbx',baseDir,mouse,mouse,session));
+            sbxList = ls(sprintf('%s%03d\\%03d_%d_100.sbx',baseDir,mouse,mouse,session));
             if mod(session,2)
                 planes = 1:4;
                 ftuIndices = 1:4; % ftu: frame_to_use
@@ -176,7 +185,8 @@ for mi = 1 : length(mice)
                     % Load frames from sbx file (reference images)
                     refImRaw = squeeze(jksbxreadframes_4h5c(refFn,trials.frame_to_use{ftuIndices(ftui)}(testFrames),1));
                     refIm = refImRaw(yStart:end,xStart:end-xDeadband,:);
-
+                    refIm = permute(refIm, [2 1 3]); % to match with suite2p format for h5 files (x,y,t), 2021/02/04 JK
+                    
                     % Load frames from h5 file (check images)
                     checkIm = zeros(size(refIm), 'like', refIm);
                     for fi = 1 : length(testFrames)
